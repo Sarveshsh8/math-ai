@@ -1,29 +1,48 @@
+import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { TweaksProvider } from './contexts/TweaksContext'
 import { Navbar } from './components/layout/Navbar'
+import { TweaksPanel } from './components/shared/TweaksPanel'
+import { LandingPage } from './pages/LandingPage'
 import { SolvePage } from './pages/SolvePage'
 import { ExplorePage } from './pages/ExplorePage'
 
-export default function App() {
+function Footer() {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-[#0a0f1e]">
-        <Routes>
-          {/* Solve page has its own hero — no navbar shown on idle */}
-          <Route path="/" element={<SolvePageWithNav />} />
-          <Route path="/explore" element={<><Navbar /><ExplorePage /></>} />
-        </Routes>
+    <footer className="footer">
+      <div>© 2026 math·ai — built for thinking, not just answering.</div>
+      <div style={{ display: 'flex', gap: 20 }}>
+        <a href="#">github</a>
+        <a href="#">changelog</a>
+        <a href="#">privacy</a>
       </div>
-    </BrowserRouter>
+    </footer>
   )
 }
 
-function SolvePageWithNav() {
+function Shell() {
+  const [tweaksOpen, setTweaksOpen] = useState(false)
+
   return (
-    <>
-      <div className="absolute top-0 right-0 px-6 py-4 flex gap-6 z-10">
-        <a href="/explore" className="text-slate-500 hover:text-white text-sm transition-colors">Explore ↗</a>
-      </div>
-      <SolvePage />
-    </>
+    <div className="shell">
+      <Navbar onOpenTweaks={() => setTweaksOpen(o => !o)} />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/solve" element={<SolvePage />} />
+        <Route path="/explore" element={<ExplorePage />} />
+      </Routes>
+      <Footer />
+      <TweaksPanel open={tweaksOpen} onClose={() => setTweaksOpen(false)} />
+    </div>
+  )
+}
+
+export default function App() {
+  return (
+    <TweaksProvider>
+      <BrowserRouter>
+        <Shell />
+      </BrowserRouter>
+    </TweaksProvider>
   )
 }

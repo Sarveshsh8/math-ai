@@ -2,7 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(npm create *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(gunzip -c \"/Users/sarvesh/.claude/projects/-Users-sarvesh-Desktop-hobbies-math-ai/ffe67080-a860-4962-8f4d-de7c3a5b5edf/tool-results/webfetch-1777662356427-tpoiwf.bin\")",
+      "Bash(tar -xO math-ai/chats/chat1.md)",
+      "Bash(gunzip -c \"/Users/sarvesh/.claude/projects/-Users-sarvesh-Desktop-hobbies-math-ai/ffe67080-a860-4962-8f4d-de7c3a5b5efd/tool-results/webfetch-1777662356427-tpoiwf.bin\")",
+      "Bash(tar -xO math-ai/project/shared.jsx gunzip -c \"/Users/sarvesh/.claude/projects/-Users-sarvesh-Desktop-hobbies-math-ai/ffe67080-a860-4962-8f4d-de7c3a5b5edf/tool-results/webfetch-1777662356427-tpoiwf.bin\")",
+      "Bash(tar -xO math-ai/project/shared.jsx)",
+      "Bash(tar -xO math-ai/project/landing.jsx)",
+      "Bash(tar -xO math-ai/project/solve.jsx gunzip -c \"/Users/sarvesh/.claude/projects/-Users-sarvesh-Desktop-hobbies-math-ai/ffe67080-a860-4962-8f4d-de7c3a5b5edf/tool-results/webfetch-1777662356427-tpoiwf.bin\")",
+      "Bash(tar -xO math-ai/project/explore.jsx gunzip -c \"/Users/sarvesh/.claude/projects/-Users-sarvesh-Desktop-hobbies-math-ai/ffe67080-a860-4962-8f4d-de7c3a5b5edf/tool-results/webfetch-1777662356427-tpoiwf.bin\")",
+      "Bash(tar -xO math-ai/project/tweaks-panel.jsx)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(curl -s http://localhost:5175/)",
+      "Bash(curl -s http://localhost:5175/src/index.css -o /dev/null -w \"%{http_code}\")"
     ]
   }
 }

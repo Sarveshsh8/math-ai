@@ -1,5 +1,6 @@
-import { StreamingText } from '../shared/StreamingText'
 import { MathRenderer } from '../shared/MathRenderer'
+import { StreamingText } from '../shared/StreamingText'
+import { Sticker } from '../shared/Sticker'
 import type { SympyResult } from '../../types'
 
 interface Props {
@@ -10,38 +11,43 @@ interface Props {
 
 export function StreamingExplanation({ sympyResult, explanation, done }: Props) {
   return (
-    <div className="space-y-4">
-      {/* Answer — always shown immediately */}
-      <div className="bg-[#0d1226] border border-violet-900/40 rounded-2xl p-5">
-        <p className="text-slate-400 text-xs uppercase tracking-widest mb-3">Answer</p>
-        <div className="text-3xl font-light">
+    <div className="panel">
+      <div className="panel__head">
+        <h3 className="panel__title">Solution</h3>
+        <Sticker dot>{done ? 'done' : 'streaming'}</Sticker>
+      </div>
+
+      <div className="answer-box">
+        <span className="answer-box__label">answer</span>
+        <div style={{ fontSize: 24, textAlign: 'center', padding: '6px 0' }}>
           <MathRenderer latex={sympyResult.latex_result} display />
         </div>
       </div>
 
-      {/* SymPy steps — compact */}
-      <div className="bg-[#111827] rounded-xl p-4">
-        <p className="text-slate-500 text-xs uppercase tracking-widest mb-2">Key steps</p>
-        <ol className="space-y-1">
-          {sympyResult.steps.map((step, i) => (
-            <li key={i} className="text-slate-300 text-sm flex gap-2">
-              <span className="text-violet-500 font-mono">{i + 1}.</span>
-              {step}
-            </li>
-          ))}
-        </ol>
-      </div>
+      <div className="panel__body stream">
+        {sympyResult.steps.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            {sympyResult.steps.map((step, i) => (
+              <div key={i} className="step">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span className="t-mono" style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent-ink)' }}>
+                    Step {String(i + 1).padStart(2, '0')}
+                  </span>
+                </div>
+                <p style={{ margin: 0, color: 'var(--ink-2)', fontSize: 14, lineHeight: 1.6 }}>{step}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
-      {/* Streaming explanation */}
-      {explanation && (
-        <div className="bg-[#111827] rounded-xl p-4">
-          <p className="text-slate-500 text-xs uppercase tracking-widest mb-3">Explanation</p>
-          <StreamingText text={explanation} />
-          {!done && (
-            <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 align-middle" />
-          )}
-        </div>
-      )}
+        {explanation && (
+          <>
+            <div className="t-eyebrow" style={{ marginBottom: 10 }}>— Explanation</div>
+            <StreamingText text={explanation} />
+            {!done && <span className="cursor" />}
+          </>
+        )}
+      </div>
     </div>
   )
 }
