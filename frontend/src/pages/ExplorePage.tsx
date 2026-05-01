@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { VizType } from '../types'
 import { DerivativeExplorer } from '../components/explore/DerivativeExplorer'
@@ -17,12 +17,10 @@ const TABS: { id: VizType; label: string; description: string }[] = [
 
 export function ExplorePage() {
   const [searchParams] = useSearchParams()
-  const [active, setActive] = useState<VizType>('derivative_explorer')
-
-  useEffect(() => {
+  const [active, setActive] = useState<VizType>(() => {
     const viz = searchParams.get('viz') as VizType | null
-    if (viz && TABS.find(t => t.id === viz)) setActive(viz)
-  }, [searchParams])
+    return viz && TABS.find(t => t.id === viz) ? viz : 'derivative_explorer'
+  })
 
   return (
     <div className="min-h-screen px-6 py-8 max-w-4xl mx-auto">

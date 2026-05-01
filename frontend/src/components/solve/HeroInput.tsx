@@ -3,6 +3,7 @@ import { useState, useRef } from 'react'
 interface Props {
   onSolve: (problem: string) => void
   loading: boolean
+  initialValue?: string
 }
 
 const EXAMPLES = [
@@ -12,8 +13,8 @@ const EXAMPLES = [
   'x² + 5x + 6 = 0',
 ]
 
-export function HeroInput({ onSolve, loading }: Props) {
-  const [value, setValue] = useState('')
+export function HeroInput({ onSolve, loading, initialValue = '' }: Props) {
+  const [value, setValue] = useState(initialValue)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,7 +37,7 @@ export function HeroInput({ onSolve, loading }: Props) {
           value={value}
           onChange={e => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Enter a math problem..."
+          placeholder="Paste homework like: solve x^2 - 5x + 6 = 0"
           rows={3}
           className="w-full bg-[#111827] border border-[#1e2d45] rounded-2xl px-6 py-5 text-lg text-white placeholder-slate-500 resize-none focus:outline-none focus:border-violet-600 focus:ring-1 focus:ring-violet-600 transition-colors"
           disabled={loading}
@@ -46,12 +47,12 @@ export function HeroInput({ onSolve, loading }: Props) {
           disabled={loading || !value.trim()}
           className="absolute right-4 bottom-4 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2 rounded-xl font-medium text-sm transition-colors"
         >
-          {loading ? 'Solving…' : 'Solve →'}
+          {loading ? 'Solving...' : 'Solve'}
         </button>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 justify-center">
-        <span className="text-slate-500 text-sm self-center">Try:</span>
+        <span className="text-slate-500 text-sm self-center">Try one:</span>
         {EXAMPLES.map(ex => (
           <button
             key={ex}
@@ -65,7 +66,7 @@ export function HeroInput({ onSolve, loading }: Props) {
       </div>
 
       <p className="text-center text-slate-600 text-xs mt-3">
-        ⌘ + Enter to solve
+        Cmd/Ctrl + Enter to solve
       </p>
     </form>
   )

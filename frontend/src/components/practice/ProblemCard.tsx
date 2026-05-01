@@ -7,10 +7,11 @@ import type { PracticeProblem } from '../../types'
 interface Props {
   problem: PracticeProblem
   topic?: string
+  onGraded?: (isCorrect: boolean, topic: string) => void
   onDone?: () => void
 }
 
-export function ProblemCard({ problem, topic = 'practice', onDone }: Props) {
+export function ProblemCard({ problem, topic = 'practice', onGraded, onDone }: Props) {
   const [answer, setAnswer] = useState('')
   const [feedback, setFeedback] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -33,6 +34,7 @@ export function ProblemCard({ problem, topic = 'practice', onDone }: Props) {
         grade => {
           setCorrect(grade.is_correct)
           setFeedback(`${grade.message}\n\n`)
+          onGraded?.(grade.is_correct, topic)
         },
       )
 

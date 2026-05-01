@@ -34,7 +34,7 @@ export function FunctionGrapher({ expression = 'sin(x) + 0.5*x' }: Props) {
       c.evaluate({ x: 0 }) // test
       setCompiled(c)
       setError(null)
-    } catch (e) {
+    } catch {
       setError('Invalid expression')
     }
   }, [])
