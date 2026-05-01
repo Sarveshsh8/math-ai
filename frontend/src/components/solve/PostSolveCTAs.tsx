@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { Sticker } from '../shared/Sticker'
 import type { VizHint } from '../../types'
 
 interface Props {
@@ -13,38 +14,27 @@ export function PostSolveCTAs({ onPractice, onReset, onShare, shareStatus, vizHi
   const navigate = useNavigate()
 
   return (
-    <div className="space-y-2 pt-2">
-      <div className="flex flex-wrap gap-3">
-        <button
-          onClick={onShare}
-          className="flex-1 min-w-40 bg-violet-600 hover:bg-violet-500 text-white px-5 py-3 rounded-xl font-medium text-sm transition-colors"
-        >
-          Share this explanation
-        </button>
-        <button
-          onClick={onPractice}
-          className="flex-1 min-w-40 bg-[#111827] hover:bg-[#1a2235] border border-[#1e2d45] hover:border-violet-600 text-slate-300 hover:text-white px-5 py-3 rounded-xl font-medium text-sm transition-colors"
-        >
-          Try a similar problem
-        </button>
+    <div className="post-ctas">
+      <div>
+        <div className="t-eyebrow" style={{ marginBottom: 6 }}>— What now?</div>
+        <div className="post-ctas__heading">
+          Don't stop here. <em style={{ fontStyle: 'italic', color: 'var(--accent-ink)' }}>Make it stick.</em>
+        </div>
+        {shareStatus && (
+          <p className="t-mono" style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 4 }}>{shareStatus}</p>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button className="btn btn--accent" onClick={onPractice}>Practice this →</button>
         {vizHint && (
-          <button
-            onClick={() => navigate(`/explore?viz=${vizHint.type}`)}
-            className="flex-1 min-w-40 bg-[#111827] hover:bg-[#1a2235] border border-[#1e2d45] hover:border-violet-600 text-slate-300 hover:text-white px-5 py-3 rounded-xl font-medium text-sm transition-colors"
-          >
-            Explore this concept
+          <button className="btn btn--ghost" onClick={() => navigate(`/explore?viz=${vizHint.type}`)}>
+            Open in Explore
           </button>
         )}
-        <button
-          onClick={onReset}
-          className="bg-[#111827] hover:bg-[#1a2235] border border-[#1e2d45] text-slate-400 hover:text-white px-5 py-3 rounded-xl font-medium text-sm transition-colors"
-        >
-          Solve another
-        </button>
+        <button className="btn btn--ghost" onClick={onShare}>Share</button>
+        <button className="btn btn--ghost" onClick={onReset}>New problem</button>
+        <Sticker dot>solved</Sticker>
       </div>
-      {shareStatus && (
-        <p className="text-slate-500 text-sm">{shareStatus}</p>
-      )}
     </div>
   )
 }

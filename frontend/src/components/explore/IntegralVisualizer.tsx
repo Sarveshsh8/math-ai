@@ -40,43 +40,35 @@ export function IntegralVisualizer({ expression = 'x^2', defaultA = 0, defaultB 
   const approxArea = rects.reduce((sum, r) => sum + r.height * r.dx, 0)
 
   return (
-    <div className="space-y-3">
-      <div className="flex gap-6 text-sm text-slate-300 px-1 flex-wrap">
-        <span>n = <strong className="text-white">{n}</strong> rectangles</span>
-        <span>≈ Area = <strong className="text-amber-400">{approxArea.toFixed(4)}</strong></span>
-        <span className="text-slate-500">Midpoint rule</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', gap: 20, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--ink-2)', flexWrap: 'wrap' }}>
+        <span>n = <strong style={{ color: 'var(--ink)' }}>{n}</strong> rectangles</span>
+        <span>≈ area = <strong style={{ color: 'var(--accent-ink)' }}>{approxArea.toFixed(4)}</strong></span>
+        <span style={{ color: 'var(--ink-4)' }}>midpoint rule</span>
       </div>
 
-      <div className="rounded-xl overflow-hidden border border-[#1e2d45]">
+      <div className="mafs-wrapper">
         <Mafs viewBox={{ x: [a - 0.5, b + 0.5], y: [-0.5, Math.max(...rects.map(r => Math.abs(r.height))) + 0.5] }}>
           <Coordinates.Cartesian />
           {rects.map((r, i) => (
-            <Polygon
-              key={i}
-              points={[
-                [r.x, 0],
-                [r.x, r.height],
-                [r.x + r.dx, r.height],
-                [r.x + r.dx, 0],
-              ]}
-              color={Theme.indigo}
-              fillOpacity={0.3}
+            <Polygon key={i}
+              points={[[r.x, 0], [r.x, r.height], [r.x + r.dx, r.height], [r.x + r.dx, 0]]}
+              color={Theme.indigo} fillOpacity={0.3}
             />
           ))}
           <Plot.OfX y={f} color={Theme.orange} />
         </Mafs>
       </div>
 
-      <div className="space-y-1">
-        <input
-          type="range"
-          min={2} max={100} step={1}
-          value={n}
-          onChange={e => setN(Number(e.target.value))}
-          className="w-full accent-violet-600"
-        />
-        <p className="text-slate-500 text-xs text-center">More rectangles → area converges to the true integral</p>
+      <div className="slider-row">
+        <span>partitions</span>
+        <input type="range" className="r" min={2} max={100} step={1}
+          value={n} onChange={e => setN(Number(e.target.value))} />
+        <span style={{ color: 'var(--accent-ink)', textAlign: 'right' }}>{n}</span>
       </div>
+      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-4)', textAlign: 'center', margin: 0 }}>
+        More rectangles → area converges to the true integral
+      </p>
     </div>
   )
 }

@@ -152,7 +152,7 @@ export function SolvePage() {
   const handleShare = async () => {
     const problem = currentProblem || sharedProblem || metadata?.sympy_result.input_expr || ''
     const url = new URL(window.location.href)
-    url.pathname = '/'
+    url.pathname = '/solve'
     url.search = ''
     url.searchParams.set('q', problem)
 
@@ -192,64 +192,73 @@ export function SolvePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className={`transition-all duration-500 ${state === 'idle' ? 'flex-1 flex flex-col items-center justify-center px-6 pb-24' : 'px-6 pt-6 pb-4 border-b border-[#1e2d45]'}`}>
+    <div className={`solve solve--${state} page-fade`}>
+      <div className="solve__hero">
         {state === 'idle' && (
-          <div className="text-center mb-10">
-            <h1 className="text-5xl font-bold text-white mb-3 tracking-tight">
-              Math<span className="text-violet-500">AI</span>
+          <>
+            <div style={{ marginBottom: 22 }}>
+              <span className="sticker sticker--accent sticker--rotate-l">
+                <span className="sticker__dot" />type anything math-shaped
+              </span>
+            </div>
+            <h1 className="solve__title">
+              Got a problem?<br /><em>Let's see it.</em>
             </h1>
-            <p className="text-slate-400 text-lg">
-              Get the exact answer, then understand every step.
+            <p className="solve__sub">
+              Plain math notation works. LaTeX works. Press{' '}
+              <span className="t-mono" style={{ color: 'var(--ink)' }}>⌘ + Enter</span> to solve.
             </p>
-            <p className="text-slate-500 text-sm mt-3">
-              Built for homework, exam prep, and the moment a confusing step finally clicks.
-            </p>
-          </div>
+          </>
         )}
+
         <HeroInput
           key={sharedProblem || 'new-problem'}
           onSolve={handleSolve}
           loading={state === 'loading'}
           initialValue={sharedProblem}
         />
+
         {error && (
-          <p className="mt-4 text-red-400 text-sm text-center">{error}</p>
+          <p className="t-mono" style={{ marginTop: 12, color: 'oklch(0.6 0.18 30)', fontSize: 13, textAlign: 'center' }}>{error}</p>
         )}
+
         {state === 'idle' && recentProblems.length > 0 && (
-          <div className="max-w-2xl mx-auto w-full mt-5">
-            <p className="text-slate-500 text-xs uppercase tracking-widest mb-2 text-center">Recent Problems</p>
-            <div className="flex flex-wrap gap-2 justify-center">
+          <div style={{ maxWidth: 720, margin: '20px auto 0', width: '100%' }}>
+            <p className="t-eyebrow" style={{ marginBottom: 8, textAlign: 'center' }}>Recent</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
               {recentProblems.map(problem => (
-                <button
-                  key={problem}
-                  type="button"
-                  onClick={() => handleSolve(problem)}
-                  className="text-slate-400 hover:text-violet-400 text-sm bg-[#111827] border border-[#1e2d45] px-3 py-1 rounded-full transition-colors hover:border-violet-600"
-                >
+                <button key={problem} type="button" className="chip" onClick={() => handleSolve(problem)}>
                   {problem}
                 </button>
               ))}
             </div>
           </div>
         )}
+
+        {state === 'result' && (
+          <button type="button" className="btn btn--ghost" onClick={handleReset}
+            style={{ padding: '8px 14px', fontSize: 13, marginTop: 12 }}>
+            Reset
+          </button>
+        )}
       </div>
 
-      {state === 'loading' && (
-        <SolveLoading problem={currentProblem} />
-      )}
+      {state === 'loading' && <SolveLoading problem={currentProblem} />}
 
       {state === 'result' && metadata && (
-        <div className="flex-1 px-6 py-6 max-w-5xl mx-auto w-full space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <div className="solve__result">
+          <div className="result-grid">
             <StreamingExplanation
               sympyResult={metadata.sympy_result}
               explanation={explanation}
               done={explanationDone}
             />
-            {metadata.viz_hint && (
-              <InlineVisualization hint={metadata.viz_hint} />
-            )}
+            {metadata.viz_hint
+              ? <InlineVisualization hint={metadata.viz_hint} />
+              : <div className="panel" style={{ minHeight: 200, display: 'grid', placeItems: 'center', color: 'var(--ink-4)' }}>
+                  <span className="t-mono" style={{ fontSize: 12 }}>no visualization for this problem type</span>
+                </div>
+            }
           </div>
 
           {explanationDone && (
@@ -263,39 +272,50 @@ export function SolvePage() {
           )}
 
           {explanationDone && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="bg-[#0d1226] border border-[#1e2d45] rounded-2xl p-4">
-                <p className="text-slate-500 text-xs uppercase tracking-widest">Practice Streak</p>
-                <p className="text-white text-2xl font-bold mt-2">{practiceStreak}</p>
-                <p className="text-slate-500 text-sm">Correct similar problems solved.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 20 }}>
+              <div className="panel">
+                <div className="panel__body">
+                  <p className="t-eyebrow" style={{ marginBottom: 8 }}>Practice Streak</p>
+                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 36, lineHeight: 1, margin: '0 0 4px' }}>{practiceStreak}</p>
+                  <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>correct similar problems</p>
+                </div>
               </div>
-              <div className="bg-[#0d1226] border border-[#1e2d45] rounded-2xl p-4">
-                <p className="text-slate-500 text-xs uppercase tracking-widest">Weak Areas</p>
-                <p className="text-slate-300 text-sm mt-2">
-                  {weakAreas.length ? weakAreas.join(', ') : 'None yet. Missed practice will appear here.'}
-                </p>
+              <div className="panel">
+                <div className="panel__body">
+                  <p className="t-eyebrow" style={{ marginBottom: 8 }}>Weak Areas</p>
+                  <p style={{ fontSize: 13, color: 'var(--ink-2)', marginTop: 4 }}>
+                    {weakAreas.length ? weakAreas.join(', ') : 'None yet — missed practice will appear here.'}
+                  </p>
+                </div>
               </div>
-              <div className="bg-[#0d1226] border border-violet-900/40 rounded-2xl p-4">
-                <p className="text-violet-300 text-xs uppercase tracking-widest">Plus Preview</p>
-                <p className="text-white font-semibold mt-2">Exam Practice Mode</p>
-                <p className="text-slate-500 text-sm">Unlimited sets, saved history, and weekly parent progress reports.</p>
+              <div className="panel" style={{ borderColor: 'var(--accent-soft)' }}>
+                <div className="panel__body">
+                  <p className="t-eyebrow" style={{ marginBottom: 8, color: 'var(--accent-ink)' }}>Plus Preview</p>
+                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, margin: '0 0 4px' }}>Exam Practice Mode</p>
+                  <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>Unlimited sets, saved history, progress reports.</p>
+                </div>
               </div>
             </div>
           )}
 
           {practiceLoading && (
-            <div className="bg-[#0d1226] border border-violet-900/40 rounded-2xl p-5 text-slate-400">
-              Generating a similar problem...
+            <div className="panel" style={{ marginTop: 20, padding: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--ink-3)' }}>
+                <span className="cursor" />
+                Generating a similar problem…
+              </div>
             </div>
           )}
 
           {showPractice && practiceProblem && (
-            <ProblemCard
-              problem={practiceProblem}
-              topic={practiceTopic}
-              onGraded={handlePracticeGraded}
-              onDone={() => setShowPractice(false)}
-            />
+            <div style={{ marginTop: 20 }}>
+              <ProblemCard
+                problem={practiceProblem}
+                topic={practiceTopic}
+                onGraded={handlePracticeGraded}
+                onDone={() => setShowPractice(false)}
+              />
+            </div>
           )}
         </div>
       )}

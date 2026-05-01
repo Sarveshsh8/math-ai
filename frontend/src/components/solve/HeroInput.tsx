@@ -7,67 +7,60 @@ interface Props {
 }
 
 const EXAMPLES = [
-  '∫ x² dx',
-  'd/dx[sin(x)cos(x)]',
-  'sin(30°)',
-  'x² + 5x + 6 = 0',
+  { label: '∫ x² dx', input: '∫ x² dx' },
+  { label: 'd/dx[sin(x)cos(x)]', input: 'd/dx[sin(x)cos(x)]' },
+  { label: 'sin(30°)', input: 'sin(30°)' },
+  { label: 'x² + 5x + 6 = 0', input: 'x² + 5x + 6 = 0' },
 ]
 
 export function HeroInput({ onSolve, loading, initialValue = '' }: Props) {
   const [value, setValue] = useState(initialValue)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const taRef = useRef<HTMLTextAreaElement>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const trimmed = value.trim()
-    if (trimmed) onSolve(trimmed)
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      handleSubmit(e)
-    }
+  const submit = (raw?: string) => {
+    const inp = (raw ?? value).trim()
+    if (!inp || loading) return
+    onSolve(inp)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      <div className="relative">
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Paste homework like: solve x^2 - 5x + 6 = 0"
-          rows={3}
-          className="w-full bg-[#111827] border border-[#1e2d45] rounded-2xl px-6 py-5 text-lg text-white placeholder-slate-500 resize-none focus:outline-none focus:border-violet-600 focus:ring-1 focus:ring-violet-600 transition-colors"
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading || !value.trim()}
-          className="absolute right-4 bottom-4 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2 rounded-xl font-medium text-sm transition-colors"
-        >
-          {loading ? 'Solving...' : 'Solve'}
-        </button>
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-2 justify-center">
-        <span className="text-slate-500 text-sm self-center">Try one:</span>
-        {EXAMPLES.map(ex => (
+    <form className="input-card" onSubmit={e => { e.preventDefault(); submit() }}>
+      <textarea
+        ref={taRef}
+        className="input-card__field"
+        placeholder="e.g. d/dx[x³ + sin(x)]"
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit()
+        }}
+        rows={2}
+        disabled={loading}
+      />
+      <div className="input-card__bar">
+        <div className="input-card__chips">
+          {EXAMPLES.map(ex => (
+            <button
+              key={ex.label}
+              type="button"
+              className="chip"
+              onClick={() => { setValue(ex.input); submit(ex.input) }}
+            >
+              {ex.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
           <button
-            key={ex}
-            type="button"
-            onClick={() => { setValue(ex); textareaRef.current?.focus() }}
-            className="text-slate-400 hover:text-violet-400 text-sm bg-[#111827] border border-[#1e2d45] px-3 py-1 rounded-full transition-colors hover:border-violet-600"
+            type="submit"
+            className="btn btn--accent"
+            style={{ padding: '10px 18px', fontSize: 13 }}
+            disabled={!value.trim() || loading}
           >
-            {ex}
+            {loading ? 'Solving…' : 'Solve →'}
           </button>
-        ))}
+        </div>
       </div>
-
-      <p className="text-center text-slate-600 text-xs mt-3">
-        Cmd/Ctrl + Enter to solve
-      </p>
     </form>
   )
 }

@@ -5,7 +5,6 @@ interface Props {
   className?: string
 }
 
-// Splits a string into segments: plain text and LaTeX ($$...$$ or $...$)
 function parseSegments(text: string) {
   const segments: { type: 'text' | 'display' | 'inline'; content: string }[] = []
   const re = /(\$\$[\s\S]*?\$\$|\$[^$\n]+?\$)/g
@@ -30,12 +29,11 @@ function parseSegments(text: string) {
   return segments
 }
 
-// Render **bold** markers in plain text
 function renderPlainText(text: string) {
   const parts = text.split(/(\*\*[^*]+\*\*)/)
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="text-white font-semibold">{part.slice(2, -2)}</strong>
+      return <strong key={i} style={{ color: 'var(--ink)', fontWeight: 600 }}>{part.slice(2, -2)}</strong>
     }
     return <span key={i}>{part}</span>
   })
@@ -45,11 +43,11 @@ export function StreamingText({ text, className }: Props) {
   const segments = parseSegments(text)
 
   return (
-    <div className={`text-slate-200 leading-relaxed whitespace-pre-wrap ${className ?? ''}`}>
+    <div style={{ color: 'var(--ink-2)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }} className={className}>
       {segments.map((seg, i) => {
         if (seg.type === 'display') {
           return (
-            <div key={i} className="my-3 overflow-x-auto">
+            <div key={i} style={{ margin: '12px 0', overflowX: 'auto' }}>
               <MathRenderer latex={seg.content} display />
             </div>
           )

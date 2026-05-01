@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { streamGrade } from '../../api/client'
 import { MathRenderer } from '../shared/MathRenderer'
 import { StreamingText } from '../shared/StreamingText'
+import { Sticker } from '../shared/Sticker'
 import type { PracticeProblem } from '../../types'
 
 interface Props {
@@ -37,73 +38,79 @@ export function ProblemCard({ problem, topic = 'practice', onGraded, onDone }: P
           onGraded?.(grade.is_correct, topic)
         },
       )
-
       for await (const chunk of gen) {
         setFeedback(prev => prev + chunk)
       }
     } catch (e) {
       setCorrect(false)
-      setFeedback(
-        `Could not grade this answer: ${e instanceof Error ? e.message : String(e)}`
-      )
+      setFeedback(`Could not grade: ${e instanceof Error ? e.message : String(e)}`)
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <div className="bg-[#0d1226] border border-violet-900/40 rounded-2xl p-5 space-y-4">
-      <p className="text-slate-400 text-xs uppercase tracking-widest">Similar Problem</p>
-
-      <div className="text-lg">
-        <MathRenderer latex={problem.problem.replace(/\$/g, '')} display />
+    <div className="panel">
+      <div className="panel__head">
+        <h3 className="panel__title">Practice</h3>
+        <Sticker variant="ink" dot>generated</Sticker>
       </div>
+      <div className="panel__body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="t-eyebrow" style={{ marginBottom: 4 }}>— Similar problem</div>
 
-      {!submitted ? (
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <input
-            value={answer}
-            onChange={e => setAnswer(e.target.value)}
-            placeholder="Your answer (LaTeX or plain text)..."
-            className="w-full bg-[#111827] border border-[#1e2d45] rounded-xl px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-violet-600 transition-colors"
-          />
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={!answer.trim() || submitting}
-              className="bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors"
-            >
-              {submitting ? 'Checking...' : 'Submit'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setFeedback(`Hint: The answer is $${problem.answer_latex}$`)}
-              className="bg-[#111827] hover:bg-[#1a2235] border border-[#1e2d45] text-slate-400 hover:text-white px-4 py-2 rounded-xl text-sm transition-colors"
-            >
+        <div style={{ fontSize: 22, padding: '14px 16px', background: 'var(--paper-2)', borderRadius: 12, border: '1px solid var(--line)' }}>
+          <MathRenderer latex={problem.problem.replace(/\$/g, '')} display />
+          <span style={{ color: 'var(--ink-3)' }}> = ?</span>
+        </div>
+
+        {!submitted ? (
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <input
+                value={answer}
+                onChange={e => setAnswer(e.target.value)}
+                placeholder="your answer (e.g. 4x^3 + 2cos(x))"
+                className="t-mono"
+                style={{
+                  flex: 1, padding: '12px 16px', borderRadius: 12,
+                  border: '1px solid var(--line-strong)', background: 'var(--paper)',
+                  fontSize: 14, outline: 'none', color: 'var(--ink)',
+                }}
+                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSubmit(e as unknown as React.FormEvent)}
+              />
+              <button type="submit" className="btn btn--primary" disabled={!answer.trim() || submitting}>
+                {submitting ? '…' : 'Check'}
+              </button>
+            </div>
+            <button type="button" className="btn btn--ghost"
+              style={{ alignSelf: 'flex-start', padding: '6px 14px', fontSize: 12 }}
+              onClick={() => setFeedback(`Hint: The answer is $${problem.answer_latex}$`)}>
               Hint
             </button>
+          </form>
+        ) : (
+          <div style={{
+            padding: 14, borderRadius: 10,
+            background: correct === null ? 'var(--paper-2)' : correct ? 'oklch(0.95 0.06 145)' : 'oklch(0.95 0.06 30)',
+            border: `1px solid ${correct === null ? 'var(--line)' : correct ? 'var(--moss)' : 'oklch(0.7 0.18 30)'}`,
+            fontSize: 13, lineHeight: 1.5, color: 'var(--ink)',
+          }}>
+            <StreamingText text={feedback || 'Checking your answer…'} />
           </div>
-        </form>
-      ) : (
-        <div className={`rounded-xl p-3 ${correct ? 'bg-green-900/20 border border-green-700/40' : 'bg-red-900/20 border border-red-700/40'}`}>
-          <StreamingText text={feedback || 'Checking your answer...'} />
-        </div>
-      )}
+        )}
 
-      {feedback && !submitted && (
-        <div className="bg-[#111827] rounded-xl p-3">
-          <StreamingText text={feedback} />
-        </div>
-      )}
+        {feedback && !submitted && (
+          <div style={{ padding: 14, borderRadius: 10, background: 'var(--paper-2)', border: '1px solid var(--line)' }}>
+            <StreamingText text={feedback} />
+          </div>
+        )}
 
-      {submitted && onDone && (
-        <button
-          onClick={onDone}
-          className="text-slate-400 hover:text-white text-sm transition-colors"
-        >
-          Back to solution ↩
-        </button>
-      )}
+        {submitted && onDone && (
+          <button className="btn btn--ghost" onClick={onDone} style={{ alignSelf: 'flex-start', padding: '6px 14px', fontSize: 13 }}>
+            Back to solution ↩
+          </button>
+        )}
+      </div>
     </div>
   )
 }
