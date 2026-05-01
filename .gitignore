@@ -53,3 +53,6 @@ models/
 
 # Cursor local artifacts
 .cursor/
+
+# Claude Code local artifacts
+.claude/
