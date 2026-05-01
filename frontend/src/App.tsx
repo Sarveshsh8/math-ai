@@ -1,8 +1,6 @@
-import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { TweaksProvider } from './contexts/TweaksContext'
 import { Navbar } from './components/layout/Navbar'
-import { TweaksPanel } from './components/shared/TweaksPanel'
 import { LandingPage } from './pages/LandingPage'
 import { SolvePage } from './pages/SolvePage'
 import { ExplorePage } from './pages/ExplorePage'
@@ -21,18 +19,15 @@ function Footer() {
 }
 
 function Shell() {
-  const [tweaksOpen, setTweaksOpen] = useState(false)
-
   return (
     <div className="shell">
-      <Navbar onOpenTweaks={() => setTweaksOpen(o => !o)} />
+      <Navbar />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/solve" element={<SolvePage />} />
         <Route path="/explore" element={<ExplorePage />} />
       </Routes>
       <Footer />
-      <TweaksPanel open={tweaksOpen} onClose={() => setTweaksOpen(false)} />
     </div>
   )
 }

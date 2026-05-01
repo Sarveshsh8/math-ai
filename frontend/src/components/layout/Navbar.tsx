@@ -1,10 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 
-interface Props {
-  onOpenTweaks?: () => void
-}
-
-export function Navbar({ onOpenTweaks }: Props) {
+export function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const path = location.pathname
@@ -29,11 +25,6 @@ export function Navbar({ onOpenTweaks }: Props) {
         {link('/', 'Home')}
         {link('/solve', 'Solve')}
         {link('/explore', 'Explore')}
-        {onOpenTweaks && (
-          <button className="nav__link" onClick={onOpenTweaks} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            Tweaks
-          </button>
-        )}
       </div>
       <a className="nav__cta" onClick={() => navigate('/solve')} style={{ cursor: 'pointer' }}>
         Try it free <span aria-hidden>→</span>
