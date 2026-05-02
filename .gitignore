@@ -55,4 +55,11 @@ models/
 .cursor/
 
 # Claude Code local artifacts
-.claude/
+.claude/settings.local.json
+
+# Spring Boot / Maven
+backend/target/
+*.jar
+*.war
+
+*.md

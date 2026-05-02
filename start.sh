@@ -3,7 +3,6 @@ set -e
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
-# ── Colors ────────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
 
@@ -12,77 +11,84 @@ ok()   { echo -e "${GREEN}[math-ai]${RESET} $*"; }
 warn() { echo -e "${YELLOW}[math-ai]${RESET} $*"; }
 die()  { echo -e "${RED}[math-ai] ERROR:${RESET} $*"; exit 1; }
 
-# ── Cleanup on exit ───────────────────────────────────────────────────────────
 PIDS=()
 cleanup() {
   echo ""
   log "Shutting down..."
-  for pid in "${PIDS[@]}"; do
-    kill "$pid" 2>/dev/null || true
-  done
+  for pid in "${PIDS[@]}"; do kill "$pid" 2>/dev/null || true; done
   wait 2>/dev/null
   ok "Done."
 }
 trap cleanup EXIT INT TERM
 
-# ── Check requirements ────────────────────────────────────────────────────────
 command -v python3 >/dev/null 2>&1 || die "python3 not found"
 command -v node    >/dev/null 2>&1 || die "node not found"
 command -v npm     >/dev/null 2>&1 || die "npm not found"
+command -v mvn     >/dev/null 2>&1 || die "mvn not found (install Maven)"
+command -v java    >/dev/null 2>&1 || die "java not found (install JDK 21+)"
 
-# ── Backend setup ─────────────────────────────────────────────────────────────
-BACKEND="$ROOT/backend"
-VENV="$BACKEND/.venv"
+# ── AI service (Python FastAPI) ───────────────────────────────────────────────
+AI="$ROOT/ai"
+VENV="$AI/.venv"
 
-log "Setting up backend..."
-
+log "Setting up AI service..."
 if [ ! -d "$VENV" ]; then
-  log "Creating Python virtual environment..."
   python3 -m venv "$VENV"
 fi
-
 source "$VENV/bin/activate"
+pip install -q -r "$AI/requirements.txt"
+ok "AI service dependencies ready."
 
-log "Installing Python dependencies..."
-pip install -q -r "$BACKEND/requirements.txt"
-
-ok "Backend dependencies ready."
-
-# ── Frontend setup ────────────────────────────────────────────────────────────
-FRONTEND="$ROOT/frontend"
-
+# ── Frontend ──────────────────────────────────────────────────────────────────
 log "Installing frontend dependencies..."
-cd "$FRONTEND" && npm install --silent
+cd "$ROOT/frontend" && npm install --silent
 cd "$ROOT"
-
 ok "Frontend dependencies ready."
 
-# ── Start backend ─────────────────────────────────────────────────────────────
-log "Starting backend on http://localhost:8000 ..."
-log "  (first run downloads ~3GB model weights — this may take a few minutes)"
+# ── Spring Boot backend ────────────────────────────────────────────────────────
+log "Building Spring Boot backend..."
+cd "$ROOT/backend" && mvn -q package -DskipTests
+cd "$ROOT"
+ok "Spring Boot backend built."
 
-cd "$BACKEND"
+# ── Start AI service ──────────────────────────────────────────────────────────
+log "Starting AI service on http://localhost:8000 ..."
+log "  (first run downloads ~3GB model weights)"
+cd "$AI"
 uvicorn main:app --host 0.0.0.0 --port 8000 &
-BACKEND_PID=$!
-PIDS+=($BACKEND_PID)
+AI_PID=$!
+PIDS+=($AI_PID)
 cd "$ROOT"
 
-# Wait for backend to be ready (up to 5 min for model download)
-log "Waiting for backend..."
+log "Waiting for AI service..."
 for i in $(seq 1 60); do
   if curl -sf http://localhost:8000/api/health >/dev/null 2>&1; then
-    ok "Backend ready."
-    break
+    ok "AI service ready."; break
   fi
-  if [ "$i" -eq 60 ]; then
-    die "Backend did not start after 5 minutes."
-  fi
+  [ "$i" -eq 60 ] && die "AI service did not start after 5 minutes."
   sleep 5
+done
+
+# ── Start Spring Boot ─────────────────────────────────────────────────────────
+log "Starting Spring Boot backend on http://localhost:8080 ..."
+cd "$ROOT/backend"
+java -jar target/mathai-backend-0.0.1-SNAPSHOT.jar &
+SPRING_PID=$!
+PIDS+=($SPRING_PID)
+cd "$ROOT"
+
+log "Waiting for Spring Boot..."
+for i in $(seq 1 30); do
+  if curl -sf http://localhost:8080/actuator/health >/dev/null 2>&1; then
+    ok "Spring Boot ready."; break
+  fi
+  [ "$i" -eq 30 ] && die "Spring Boot did not start after 30 seconds."
+  sleep 1
 done
 
 # ── Start frontend ────────────────────────────────────────────────────────────
 log "Starting frontend on http://localhost:5173 ..."
-cd "$FRONTEND"
+cd "$ROOT/frontend"
 npm run dev &
 FRONTEND_PID=$!
 PIDS+=($FRONTEND_PID)
@@ -90,11 +96,11 @@ cd "$ROOT"
 
 echo ""
 echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}  MathAI is running${RESET}"
+echo -e "${BOLD}  math·ai is running${RESET}"
 echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "  App:     ${CYAN}http://localhost:5173${RESET}"
-echo -e "  API:     ${CYAN}http://localhost:8000${RESET}"
-echo -e "  API docs:${CYAN}http://localhost:8000/docs${RESET}"
+echo -e "  Backend: ${CYAN}http://localhost:8080${RESET}  (Spring Boot)"
+echo -e "  AI:      ${CYAN}http://localhost:8000${RESET}  (FastAPI, internal)"
 echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "  Press ${BOLD}Ctrl+C${RESET} to stop"
 echo ""
