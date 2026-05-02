@@ -12,6 +12,8 @@ interface Props {
   onDone?: () => void
 }
 
+const MAX_ANSWER_CHARS = 500
+
 export function ProblemCard({ problem, topic = 'practice', onGraded, onDone }: Props) {
   const [answer, setAnswer] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -68,7 +70,7 @@ export function ProblemCard({ problem, topic = 'practice', onGraded, onDone }: P
             <div style={{ display: 'flex', gap: 10 }}>
               <input
                 value={answer}
-                onChange={e => setAnswer(e.target.value)}
+                onChange={e => setAnswer(e.target.value.slice(0, MAX_ANSWER_CHARS))}
                 placeholder="your answer (e.g. 4x^3 + 2cos(x))"
                 className="t-mono"
                 style={{
@@ -82,6 +84,9 @@ export function ProblemCard({ problem, topic = 'practice', onGraded, onDone }: P
                 {submitting ? '…' : 'Check'}
               </button>
             </div>
+            <p style={{ color: 'var(--ink-3)', fontSize: 12, textAlign: 'right' }}>
+              {answer.length}/{MAX_ANSWER_CHARS}
+            </p>
             <button type="button" className="btn btn--ghost"
               style={{ alignSelf: 'flex-start', padding: '6px 14px', fontSize: 12 }}
               onClick={() => setFeedback(`Hint: The answer is $${problem.answer_latex}$`)}>

@@ -25,17 +25,19 @@ public class UserService {
     }
 
     public AuthResponse register(RegisterRequest req) {
-        if (userRepository.existsByEmail(req.email())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
+        String email = req.email().trim().toLowerCase();
+        if (userRepository.existsByEmail(email)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Registration failed");
         }
-        User user = new User(req.email(), passwordEncoder.encode(req.password()), req.displayName());
+        User user = new User(email, passwordEncoder.encode(req.password()), req.displayName().trim());
         userRepository.save(user);
         String token = jwtUtil.generate(user.getEmail(), user.getId());
         return new AuthResponse(token, user.getId(), user.getEmail(), user.getDisplayName());
     }
 
     public AuthResponse login(LoginRequest req) {
-        User user = userRepository.findByEmail(req.email())
+        String email = req.email().trim().toLowerCase();
+        User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
 
         if (!passwordEncoder.matches(req.password(), user.getPasswordHash())) {

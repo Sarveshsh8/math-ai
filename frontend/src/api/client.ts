@@ -1,14 +1,27 @@
 import type { SolveMetadata, PracticeProblem, PracticeGradeResult, PracticeTopic } from '../types'
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+const MAX_PROBLEM_CHARS = 500
+const MAX_ANSWER_CHARS = 500
+
+function assertLength(value: string, max: number, label: string) {
+  if (value.trim().length === 0) throw new Error(`${label} is required`)
+  if (value.length > max) throw new Error(`${label} must be ${max} characters or less`)
+}
+
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem('jwt')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 export async function* streamSolve(
   problem: string,
   onMetadata: (meta: SolveMetadata) => void,
 ): AsyncGenerator<string> {
+  assertLength(problem, MAX_PROBLEM_CHARS, 'Problem')
   const res = await fetch(`${BASE}/api/solve`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ problem }),
   })
 
@@ -50,10 +63,11 @@ export async function generatePractice(
   difficulty: 'easy' | 'medium' | 'hard',
   weakAreas: string[] = [],
 ): Promise<PracticeProblem> {
+  const safeWeakAreas = weakAreas.slice(0, 5).map(area => area.slice(0, 80))
   const res = await fetch(`${BASE}/api/practice/generate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ topic, difficulty, weak_areas: weakAreas }),
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ topic, difficulty, weak_areas: safeWeakAreas }),
   })
   if (!res.ok) throw new Error(`API error ${res.status}`)
   return res.json()
@@ -67,9 +81,12 @@ export async function* streamGrade(
   topic: string,
   onMetadata: (grade: PracticeGradeResult) => void,
 ): AsyncGenerator<string> {
+  assertLength(problem, MAX_PROBLEM_CHARS, 'Problem')
+  assertLength(studentAnswer, MAX_ANSWER_CHARS, 'Answer')
+  assertLength(correctAnswer, MAX_ANSWER_CHARS, 'Correct answer')
   const res = await fetch(`${BASE}/api/practice/grade`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({
       problem_id: problemId,
       problem,

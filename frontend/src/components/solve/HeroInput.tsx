@@ -12,6 +12,7 @@ const EXAMPLES = [
   { label: 'sin(30°)', input: 'sin(30°)' },
   { label: 'x² + 5x + 6 = 0', input: 'x² + 5x + 6 = 0' },
 ]
+const MAX_PROBLEM_CHARS = 500
 
 export function HeroInput({ onSolve, loading, initialValue = '' }: Props) {
   const [value, setValue] = useState(initialValue)
@@ -30,7 +31,7 @@ export function HeroInput({ onSolve, loading, initialValue = '' }: Props) {
         className="input-card__field"
         placeholder="e.g. d/dx[x³ + sin(x)]"
         value={value}
-        onChange={e => setValue(e.target.value)}
+        onChange={e => setValue(e.target.value.slice(0, MAX_PROBLEM_CHARS))}
         onKeyDown={e => {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit()
         }}
@@ -51,6 +52,9 @@ export function HeroInput({ onSolve, loading, initialValue = '' }: Props) {
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+          <span style={{ color: 'var(--ink-3)', fontSize: 12 }}>
+            {value.length}/{MAX_PROBLEM_CHARS}
+          </span>
           <button
             type="submit"
             className="btn btn--accent"

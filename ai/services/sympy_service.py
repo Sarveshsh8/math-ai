@@ -1,7 +1,7 @@
 import re
 from sympy import (
-    symbols, diff, integrate, solve, simplify, factor, expand,
-    latex, sympify, sin, cos, tan, pi, E, oo, Symbol
+    symbols, diff, integrate, solve, simplify,
+    latex, sympify, sin, cos, tan, pi, E,
 )
 from sympy.parsing.sympy_parser import (
     parse_expr, standard_transformations, implicit_multiplication_application,
@@ -9,8 +9,11 @@ from sympy.parsing.sympy_parser import (
 )
 from sympy.parsing.latex import parse_latex
 from models.responses import SympyResult, VizHint, PracticeGradeResult
+from config import settings
 
 x = symbols('x')
+MAX_POWER_ABS = 100
+MAX_STRUCTURAL_TOKENS = 120
 _TRANSFORMS = standard_transformations + (
     implicit_multiplication_application,
     convert_xor,
@@ -29,6 +32,8 @@ _LOCAL_DICT = {
 def _parse(expr_str: str):
     """Try plain parser first, then LaTeX fallback."""
     clean = _normalize_math_text(expr_str)
+    if not _is_safe_math_input(clean):
+        return None
     try:
         return parse_expr(clean, transformations=_TRANSFORMS, local_dict=_LOCAL_DICT)
     except Exception:
@@ -48,6 +53,20 @@ def _normalize_math_text(expr_str: str) -> str:
     clean = re.sub(r"\\boxed\{(.+)\}", r"\1", clean)
     clean = re.sub(r"\b(final answer|answer)\s*:?", "", clean, flags=re.IGNORECASE).strip()
     return clean
+
+
+def _is_safe_math_input(expr_str: str) -> bool:
+    if len(expr_str) > settings.max_problem_chars:
+        return False
+    if len(re.findall(r"[()+\-*/^=]", expr_str)) > MAX_STRUCTURAL_TOKENS:
+        return False
+    for power in re.findall(r"(?:\*\*|\^)\s*\(?\s*(-?\d+)", expr_str):
+        try:
+            if abs(int(power)) > MAX_POWER_ABS:
+                return False
+        except ValueError:
+            return False
+    return True
 
 
 def _latexish_to_plain(expr_str: str) -> str:

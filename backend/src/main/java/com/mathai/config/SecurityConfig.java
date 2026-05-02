@@ -27,6 +27,9 @@ public class SecurityConfig {
     @Value("${mathai.cors.allowed-origins}")
     private String allowedOriginsRaw;
 
+    @Value("${mathai.cors.allowed-headers}")
+    private String allowedHeadersRaw;
+
     public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
@@ -60,12 +63,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(Arrays.asList(allowedOriginsRaw.split(",")));
-        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        cfg.setAllowedHeaders(List.of("*"));
+        cfg.setAllowedOrigins(splitCsv(allowedOriginsRaw));
+        cfg.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+        cfg.setAllowedHeaders(splitCsv(allowedHeadersRaw));
         cfg.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
         return source;
+    }
+
+    private List<String> splitCsv(String raw) {
+        return Arrays.stream(raw.split(","))
+            .map(String::trim)
+            .filter(value -> !value.isBlank())
+            .toList();
     }
 }
