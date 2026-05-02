@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useAuth } from '../contexts/useAuth'
 import { HeroInput } from '../components/solve/HeroInput'
 import { StreamingExplanation } from '../components/solve/StreamingExplanation'
 import { InlineVisualization } from '../components/solve/InlineVisualization'
@@ -27,6 +28,7 @@ function readStoredNumber(key: string) {
 }
 
 export function SolvePage() {
+  const { refreshMe } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const sharedProblem = searchParams.get('q') ?? ''
   const autoRunRef = useRef(false)
@@ -92,6 +94,13 @@ export function SolvePage() {
       setState('idle')
     }
   }, [setSearchParams])
+
+  useEffect(() => {
+    if (searchParams.get('subscribed') === 'true') {
+      void refreshMe()
+      setSearchParams(p => { p.delete('subscribed'); return p }, { replace: true })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!sharedProblem || autoRunRef.current) return

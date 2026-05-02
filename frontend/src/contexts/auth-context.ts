@@ -2,6 +2,10 @@ import { createContext } from 'react'
 
 export interface User {
   email: string
+  displayName?: string
+  subscribed?: boolean
+  hasAccess?: boolean
+  trialEndsAt?: string
 }
 
 export interface AuthCtx {
@@ -10,6 +14,7 @@ export interface AuthCtx {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, displayName: string) => Promise<void>
   logout: () => void
+  refreshMe: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthCtx | null>(null)
