@@ -1,8 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../contexts/useAuth'
 
 export function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const path = location.pathname
 
   const link = (to: string, label: string) => (
@@ -26,9 +28,20 @@ export function Navbar() {
         {link('/solve', 'Solve')}
         {link('/explore', 'Explore')}
       </div>
-      <a className="nav__cta" onClick={() => navigate('/solve')} style={{ cursor: 'pointer' }}>
-        Try it free <span aria-hidden>→</span>
-      </a>
+      {user ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span className="nav__link" style={{ cursor: 'default', color: 'var(--ink-3)' }}>
+            {user.email}
+          </span>
+          <a className="nav__cta" onClick={logout} style={{ cursor: 'pointer' }}>
+            Sign out
+          </a>
+        </div>
+      ) : (
+        <a className="nav__cta" onClick={() => navigate('/auth')} style={{ cursor: 'pointer' }}>
+          Sign in <span aria-hidden>→</span>
+        </a>
+      )}
     </nav>
   )
 }

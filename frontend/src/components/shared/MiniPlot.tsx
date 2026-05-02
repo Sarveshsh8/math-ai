@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 interface AccentLine {
   x1: number; y1: number; x2: number; y2: number
@@ -30,8 +30,8 @@ export function MiniPlot({
 }: Props) {
   const [x0, x1] = domain
   const [y0, y1] = range
-  const sx = (x: number) => ((x - x0) / (x1 - x0)) * width
-  const sy = (y: number) => height - ((y - y0) / (y1 - y0)) * height
+  const sx = useCallback((x: number) => ((x - x0) / (x1 - x0)) * width, [width, x0, x1])
+  const sy = useCallback((y: number) => height - ((y - y0) / (y1 - y0)) * height, [height, y0, y1])
 
   const path = useMemo(() => {
     if (!f) return ''
@@ -49,7 +49,7 @@ export function MiniPlot({
       prev = true
     }
     return d
-  }, [f, x0, x1, y0, y1, width, height])
+  }, [f, sx, sy, x0, x1, y0, y1])
 
   const xticks: number[] = []
   for (let x = Math.ceil(x0); x <= x1; x++) xticks.push(x)

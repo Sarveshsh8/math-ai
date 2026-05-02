@@ -1,0 +1,57 @@
+import { useState, type ReactNode } from 'react'
+import { AuthContext, type User } from './auth-context'
+
+const BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('jwt'))
+  const [user, setUser] = useState<User | null>(() => {
+    const t = localStorage.getItem('jwt')
+    const e = localStorage.getItem('jwt_email')
+    return t && e ? { email: e } : null
+  })
+
+  const persist = (jwt: string, email: string) => {
+    localStorage.setItem('jwt', jwt)
+    localStorage.setItem('jwt_email', email)
+    setToken(jwt)
+    setUser({ email })
+  }
+
+  const login = async (email: string, password: string) => {
+    const res = await fetch(`${BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message ?? `Login failed (${res.status})`)
+    }
+    const { token: jwt } = await res.json()
+    persist(jwt, email)
+  }
+
+  const register = async (email: string, password: string, displayName: string) => {
+    const res = await fetch(`${BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, displayName }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message ?? `Registration failed (${res.status})`)
+    }
+    const { token: jwt } = await res.json()
+    persist(jwt, email)
+  }
+
+  const logout = () => {
+    localStorage.removeItem('jwt')
+    localStorage.removeItem('jwt_email')
+    setToken(null)
+    setUser(null)
+  }
+
+  return <AuthContext.Provider value={{ user, token, login, register, logout }}>{children}</AuthContext.Provider>
+}

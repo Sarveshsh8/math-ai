@@ -7,13 +7,14 @@ interface Props {
 
 function parseSegments(text: string) {
   const segments: { type: 'text' | 'display' | 'inline'; content: string }[] = []
+  const safeText = text.slice(0, 12000)
   const re = /(\$\$[\s\S]*?\$\$|\$[^$\n]+?\$)/g
   let last = 0
   let match: RegExpExecArray | null
 
-  while ((match = re.exec(text)) !== null) {
+  while ((match = re.exec(safeText)) !== null) {
     if (match.index > last) {
-      segments.push({ type: 'text', content: text.slice(last, match.index) })
+      segments.push({ type: 'text', content: safeText.slice(last, match.index) })
     }
     const raw = match[0]
     if (raw.startsWith('$$')) {
@@ -23,8 +24,8 @@ function parseSegments(text: string) {
     }
     last = match.index + raw.length
   }
-  if (last < text.length) {
-    segments.push({ type: 'text', content: text.slice(last) })
+  if (last < safeText.length) {
+    segments.push({ type: 'text', content: safeText.slice(last) })
   }
   return segments
 }

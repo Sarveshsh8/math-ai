@@ -1,28 +1,8 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-
-interface Tweaks {
-  variant: 'editorial' | 'studio'
-  accentHue: number
-  density: number
-  displayFont: string
-}
-
-const DEFAULTS: Tweaks = {
-  variant: 'editorial',
-  accentHue: 45,
-  density: 1,
-  displayFont: 'Instrument Serif',
-}
-
-interface TweaksCtx {
-  tweaks: Tweaks
-  setTweak: <K extends keyof Tweaks>(key: K, value: Tweaks[K]) => void
-}
-
-const Ctx = createContext<TweaksCtx>({ tweaks: DEFAULTS, setTweak: () => {} })
+import { useEffect, useState, type ReactNode } from 'react'
+import { DEFAULT_TWEAKS, TweaksContext, type Tweaks } from './tweaks-context'
 
 export function TweaksProvider({ children }: { children: ReactNode }) {
-  const [tweaks, setTweaks] = useState<Tweaks>(DEFAULTS)
+  const [tweaks, setTweaks] = useState<Tweaks>(DEFAULT_TWEAKS)
 
   const setTweak = <K extends keyof Tweaks>(key: K, value: Tweaks[K]) => {
     setTweaks(prev => ({ ...prev, [key]: value }))
@@ -36,7 +16,5 @@ export function TweaksProvider({ children }: { children: ReactNode }) {
     document.body.classList.toggle('variant-studio', tweaks.variant === 'studio')
   }, [tweaks])
 
-  return <Ctx.Provider value={{ tweaks, setTweak }}>{children}</Ctx.Provider>
+  return <TweaksContext.Provider value={{ tweaks, setTweak }}>{children}</TweaksContext.Provider>
 }
-
-export const useTweaks = () => useContext(Ctx)

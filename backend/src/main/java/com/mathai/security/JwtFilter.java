@@ -39,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = header.substring(7);
         if (!jwtUtil.isValid(token)) {
-            chain.doFilter(request, response);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid bearer token");
             return;
         }
 

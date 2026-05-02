@@ -1,9 +1,12 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { TweaksProvider } from './contexts/TweaksContext'
+import { AuthProvider } from './contexts/AuthContext'
 import { Navbar } from './components/layout/Navbar'
+import { ProtectedRoute } from './components/shared/ProtectedRoute'
 import { LandingPage } from './pages/LandingPage'
 import { SolvePage } from './pages/SolvePage'
 import { ExplorePage } from './pages/ExplorePage'
+import { AuthPage } from './pages/AuthPage'
 
 function Footer() {
   return (
@@ -24,8 +27,9 @@ function Shell() {
       <Navbar />
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/solve" element={<SolvePage />} />
-        <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/solve" element={<ProtectedRoute><SolvePage /></ProtectedRoute>} />
+        <Route path="/explore" element={<ProtectedRoute><ExplorePage /></ProtectedRoute>} />
       </Routes>
       <Footer />
     </div>
@@ -35,9 +39,11 @@ function Shell() {
 export default function App() {
   return (
     <TweaksProvider>
-      <BrowserRouter>
-        <Shell />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Shell />
+        </BrowserRouter>
+      </AuthProvider>
     </TweaksProvider>
   )
 }

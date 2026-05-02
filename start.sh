@@ -27,6 +27,17 @@ command -v npm     >/dev/null 2>&1 || die "npm not found"
 command -v mvn     >/dev/null 2>&1 || die "mvn not found (install Maven)"
 command -v java    >/dev/null 2>&1 || die "java not found (install JDK 21+)"
 
+export AI_INTERNAL_TOKEN="${AI_INTERNAL_TOKEN:-$(python3 - <<'PY'
+import secrets
+print(secrets.token_urlsafe(32))
+PY
+)}"
+export JWT_SECRET="${JWT_SECRET:-$(python3 - <<'PY'
+import secrets
+print(secrets.token_urlsafe(48))
+PY
+)}"
+
 # ── AI service (Python FastAPI) ───────────────────────────────────────────────
 AI="$ROOT/ai"
 VENV="$AI/.venv"
@@ -55,7 +66,7 @@ ok "Spring Boot backend built."
 log "Starting AI service on http://localhost:8000 ..."
 log "  (first run downloads ~3GB model weights)"
 cd "$AI"
-uvicorn main:app --host 0.0.0.0 --port 8000 &
+uvicorn main:app --host "${AI_HOST:-127.0.0.1}" --port "${AI_PORT:-8000}" &
 AI_PID=$!
 PIDS+=($AI_PID)
 cd "$ROOT"
