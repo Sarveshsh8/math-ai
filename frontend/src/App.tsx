@@ -7,6 +7,7 @@ import { LandingPage } from './pages/LandingPage'
 import { SolvePage } from './pages/SolvePage'
 import { ExplorePage } from './pages/ExplorePage'
 import { AuthPage } from './pages/AuthPage'
+import { BillingPage } from './pages/BillingPage'
 
 function Footer() {
   return (
@@ -28,6 +29,7 @@ function Shell() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/billing" element={<BillingPage />} />
         <Route path="/solve" element={<ProtectedRoute><SolvePage /></ProtectedRoute>} />
         <Route path="/explore" element={<ProtectedRoute><ExplorePage /></ProtectedRoute>} />
       </Routes>

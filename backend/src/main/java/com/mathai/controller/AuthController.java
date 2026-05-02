@@ -2,6 +2,7 @@ package com.mathai.controller;
 
 import com.mathai.dto.AuthResponse;
 import com.mathai.dto.LoginRequest;
+import com.mathai.dto.MeResponse;
 import com.mathai.dto.RegisterRequest;
 import com.mathai.service.UserService;
 import jakarta.validation.Valid;
@@ -29,7 +30,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<String> me(org.springframework.security.core.Authentication auth) {
-        return ResponseEntity.ok(auth.getName());
+    public ResponseEntity<MeResponse> me(org.springframework.security.core.Authentication auth) {
+        return ResponseEntity.ok(userService.me(auth.getName()));
     }
 }

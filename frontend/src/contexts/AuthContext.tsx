@@ -11,11 +11,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return t && e ? { email: e } : null
   })
 
-  const persist = (jwt: string, email: string) => {
+  const fetchMe = async (jwt: string): Promise<User | null> => {
+    try {
+      const res = await fetch(`${BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      })
+      if (!res.ok) return null
+      const data = await res.json()
+      return {
+        email: data.email,
+        displayName: data.displayName,
+        subscribed: data.subscribed,
+        hasAccess: data.hasAccess,
+        trialEndsAt: data.trialEndsAt,
+      }
+    } catch {
+      return null
+    }
+  }
+
+  const persist = async (jwt: string, email: string) => {
     localStorage.setItem('jwt', jwt)
     localStorage.setItem('jwt_email', email)
     setToken(jwt)
-    setUser({ email })
+    const me = await fetchMe(jwt)
+    setUser(me ?? { email })
+  }
+
+  const refreshMe = async () => {
+    const jwt = localStorage.getItem('jwt')
+    if (!jwt) return
+    const me = await fetchMe(jwt)
+    if (me) setUser(me)
   }
 
   const login = async (email: string, password: string) => {
@@ -29,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(err.message ?? `Login failed (${res.status})`)
     }
     const { token: jwt } = await res.json()
-    persist(jwt, email)
+    await persist(jwt, email)
   }
 
   const register = async (email: string, password: string, displayName: string) => {
@@ -43,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(err.message ?? `Registration failed (${res.status})`)
     }
     const { token: jwt } = await res.json()
-    persist(jwt, email)
+    await persist(jwt, email)
   }
 
   const logout = () => {
@@ -53,5 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
-  return <AuthContext.Provider value={{ user, token, login, register, logout }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, token, login, register, logout, refreshMe }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }

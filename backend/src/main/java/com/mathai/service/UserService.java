@@ -2,6 +2,7 @@ package com.mathai.service;
 
 import com.mathai.dto.AuthResponse;
 import com.mathai.dto.LoginRequest;
+import com.mathai.dto.MeResponse;
 import com.mathai.dto.RegisterRequest;
 import com.mathai.model.User;
 import com.mathai.repository.UserRepository;
@@ -33,6 +34,13 @@ public class UserService {
         userRepository.save(user);
         String token = jwtUtil.generate(user.getEmail(), user.getId());
         return new AuthResponse(token, user.getId(), user.getEmail(), user.getDisplayName());
+    }
+
+    public MeResponse me(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return new MeResponse(user.getId(), user.getEmail(), user.getDisplayName(),
+            user.isSubscribed(), user.hasAccess(), user.getTrialEndsAt());
     }
 
     public AuthResponse login(LoginRequest req) {

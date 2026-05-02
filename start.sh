@@ -3,6 +3,14 @@ set -e
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
+# Load .env if present (export each non-comment line)
+if [[ -f "$ROOT/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ROOT/.env"
+  set +a
+fi
+
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
 
@@ -26,6 +34,7 @@ command -v node    >/dev/null 2>&1 || die "node not found"
 command -v npm     >/dev/null 2>&1 || die "npm not found"
 command -v mvn     >/dev/null 2>&1 || die "mvn not found (install Maven)"
 command -v java    >/dev/null 2>&1 || die "java not found (install JDK 21+)"
+command -v stripe  >/dev/null 2>&1 || warn "stripe CLI not found — webhook forwarding skipped (brew install stripe/stripe-cli/stripe)"
 
 export AI_INTERNAL_TOKEN="${AI_INTERNAL_TOKEN:-$(python3 - <<'PY'
 import secrets
@@ -97,6 +106,15 @@ for i in $(seq 1 30); do
   sleep 1
 done
 
+# ── Stripe webhook forwarding ─────────────────────────────────────────────────
+if command -v stripe >/dev/null 2>&1; then
+  log "Starting Stripe webhook forwarding..."
+  stripe listen --forward-to localhost:8080/api/billing/webhook &
+  STRIPE_PID=$!
+  PIDS+=($STRIPE_PID)
+  ok "Stripe forwarding started."
+fi
+
 # ── Start frontend ────────────────────────────────────────────────────────────
 log "Starting frontend on http://localhost:5173 ..."
 cd "$ROOT/frontend"
@@ -112,6 +130,7 @@ echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━�
 echo -e "  App:     ${CYAN}http://localhost:5173${RESET}"
 echo -e "  Backend: ${CYAN}http://localhost:8080${RESET}  (Spring Boot)"
 echo -e "  AI:      ${CYAN}http://localhost:8000${RESET}  (FastAPI, internal)"
+command -v stripe >/dev/null 2>&1 && echo -e "  Stripe:  webhook forwarding → localhost:8080"
 echo -e "${BOLD}${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e "  Press ${BOLD}Ctrl+C${RESET} to stop"
 echo ""
