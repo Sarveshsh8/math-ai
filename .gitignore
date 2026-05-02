@@ -62,4 +62,8 @@ backend/target/
 *.jar
 *.war
 
+# Rust
+target/
+rust-backend/target/
+
 *.md

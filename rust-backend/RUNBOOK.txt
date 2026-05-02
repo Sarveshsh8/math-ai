@@ -1,0 +1,44 @@
+Math AI Rust Backend
+====================
+
+Phase 1 Rust service for replacing the Spring Boot gateway and beginning the Python AI-service migration.
+
+What it provides:
+
+- POST /auth/register
+- POST /auth/login
+- GET /auth/me
+- GET /actuator/health
+- POST /api/solve with SSE events matching the current frontend contract
+- POST /api/practice/generate
+- POST /api/practice/grade with SSE events matching the current frontend contract
+
+The math engine is intentionally small in this first phase. It preserves the API/SSE shape and covers the existing practice templates while the full symbolic engine is ported out of Python.
+
+Run:
+
+    cd rust-backend
+    export JWT_SECRET="$(openssl rand -base64 48)"
+    export MONGO_URI="mongodb://localhost:27017/mathai"
+    cargo run
+
+The service listens on http://localhost:8080 by default.
+
+Useful environment variables:
+
+    PORT=8080
+    MONGO_URI=mongodb://localhost:27017/mathai
+    MONGO_DATABASE=mathai
+    JWT_SECRET=<at-least-32-characters>
+    JWT_EXPIRATION_MS=3600000
+    CORS_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:5175
+    RUST_LOG=mathai_rust_backend=info,tower_http=info
+
+Keep the frontend pointed at VITE_API_BASE_URL=http://localhost:8080.
+
+Next migration slices:
+
+1. Replace the placeholder math helpers in src/main.rs with a real Rust math module.
+2. Persist solve history in MongoDB using the existing solve history model shape.
+3. Remove the Java proxy once auth and the API routes are verified in Rust.
+4. Decide whether the LLM path should be a Rust-native inference client, a local model server, or a remote API.
